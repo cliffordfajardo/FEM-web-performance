@@ -1,0 +1,92 @@
+
+
+Why Web Performance?
+
+>Many countries unfortunately have internet speeds of less than 500kbps.
+>8 out of 10 people will not return to a site after a disappointing experience.
+>Google – A 400 millisecond delay caused a 0.59% drop in searches/user.
+>57% of online consumers will abandon a site after waiting 3 seconds for a page to load.
+>Giving a great user experience to user is mandatory & is part of our jobs as engineers.
+
+It could be my family in Nicaragua browsing a website.
+
+
+Analyzing your website: http:weppagetest.org or googlepagespeedinsight, whichloadsfaster.com
+images here...shows exact time for when user sees content
+
+For users the percieved performance is perhaps more important initially than the actual performanec.
+
+Document.ready - that's the point at which a user is able to meaningfully interact with the page. The standard point at which we know the browser is finished parsing everything & can let the user do prerry much anything he/she wants, even if images are still loading.
+
+When trying to improve the performance of a website - it's critically important to benchmark it before you make optimizations so you can later find out how much you've improved.
+
+
+
+https://browserdiet.com/en/
+
+
+
+
+Review: How to reduce Front End latency
+1) reduce/have fewer http requests
+  - combine scripts
+  - combine css
+  - combine images(use sprites)
+  - simply request less
+  - request less during page load time. Example: request google analytics after document ready.
+
+
+2) use a CDN (great for static resources)
+  - CDN's have more points of presence around the world than you do. Typically, you'll have one web server. CDN's have multiple CDN's around the world. So they have a server in Asia, Australia, US etc.
+  - Shared caching: if I reference the jQuery file from Google's CDN's & a 1000 other sites also reference that file, in general that person will have that file more likely in their cache & won't have to re-download that file.
+  -
+
+3) Using expires & cache-control headers
+  - when you have a resource, there is an implicit amount of time that this resource will live & be valid for according to the browser, so you want to minimize the amount of incorrectness between those two. If you only intend a resource to be valid for a day, but send an expire setting that will say it will be valid for a week there's a disparity or if you want a resource to be valid for a while & you put not expire time, every time a user reloads the page, they have to re-download that same file.
+  - Send out proper headers that correspond to the intent for a particular piece of content. There's stable content such as jQuery 1.8, that file is never going to change, but then you have less stable content like a dynamic widget and that thing changes every day.
+
+
+ give you the ability to control the loading policy around stable content
+
+4) Gzipping
+  - gives you the ability to control the loading policy around stable content
+  - can compress your content anywhere from 50%-70% decreasing loading time.
+
+5) Stylesheets at Top:
+  - browser will often block the rendering of content, until it knows about all the stylesheets, so it doesn't paint things correctly & have to redo that work.
+
+6) Scripts at the bottom:
+  - generally the solution, however sometimes you can place smaller inline scripts at the top for your specific needs.
+
+7) NEVER CSS expressions (IE6 times).
+
+8) External JS/class (own documents !inline)
+ - main reason to follow this is browser caching
+ - note: there are some good reasons to inline, especially on mobile & to reduce http requests
+
+
+ 9) Fewer DNS look ups
+ -
+
+ 10) Minify CSS/JS
+
+ 11) Avoid redirects
+ - Example: when I go to CNN.com what happens is I get redirected to www.cnn.com. What happens is a round trip to the server & the server responded with 'CNN.com' is not the canonical location for this website, tell the user to change the address and re-request. Sometimes CNN.com & www.cnn.com could reference the same server, but that's not always true.
+
+ 12) Duplicate scripts
+ - sometimes a CMS loads one script for the site, then another for plugin which uses a different version of jQuery.
+
+ 13) Etags
+ - hexadecimal codes that are generated, which are supposed to uniquely represent a resource.
+ - falls under the area of conditional loading
+ - use wisely, default etags configs are dangerous.
+
+ 14) Cacheable AJAX
+ - if you are requesting a resource (ex: using REST interface) you can add an additional layer of expiration
+
+
+
+Note:
+- moving you scripts at the bottom doesn't solve all of your performance problems. You haven't changed the nature of how the browser treats that download. The only thing that you have done is, by the placement of your markup (browsers parse top-bottom), give a priority indication to the browser of which resources are most important.
+
+- People commonly conflate scripts at the bottom with a different concept which is called waiting for the document to be ready because they want to modify the DOM or attach event handlers or do some other things. They think that if I put the script at the bottom of the page, then surely the document is done so when my code runs everything should work. In reality, the way the algorithm the document or body may not be done when it hits a script tag at the bottom. Your script may run before the before the document is completely ready.
