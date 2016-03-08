@@ -11,7 +11,7 @@ Why Web Performance?
 It could be my family in Nicaragua browsing a website.
 
 
-Analyzing your website: http:weppagetest.org or googlepagespeedinsight, whichloadsfaster.com
+Analyzing your website:  or
 images here...shows exact time for when user sees content
 
 For users the percieved performance is perhaps more important initially than the actual performanec.
@@ -21,9 +21,12 @@ Document.ready - that's the point at which a user is able to meaningfully intera
 When trying to improve the performance of a website - it's critically important to benchmark it before you make optimizations so you can later find out how much you've improved.
 
 
-
+Resources:
 https://browserdiet.com/en/
-
+https://developers.google.com/speed/pagespeed/insights/
+http://gidnetwork.com/tools/gzip-test.php
+http://weppagetest.org
+http://whichloadsfaster.com
 
 
 
@@ -79,10 +82,24 @@ Review: How to reduce Front End latency
  13) Etags
  - hexadecimal codes that are generated, which are supposed to uniquely represent a resource.
  - falls under the area of conditional loading
- - use wisely, default etags configs are dangerous.
+
 
  14) Cacheable AJAX
- - if you are requesting a resource (ex: using REST interface) you can add an additional layer of expiration
+ - if you are requesting a resource (ex: using REST interface) you can add an additional layer of expiration on top of those things, like a list of the newest books - that AJAX can be cached for a period of time ex. 4 hrs... - you don't need to re-request thhose resources from the database every single time. AJAX is cacheable like XML, CSS & javascript files
+
+
+MORE NOTES:
+Concerning etag & expire/cache control
+- you don't need to use etag if you're using expire/cache & vise versa. Your adding more bytes to your response headers
+- reduce cookie size or be mindful of it. Ex: If you're using Google Analytics on your site, check the response headers of your index.html file & you'll see a cookie with GA on it (Google Analytics). To track uniqueness of people they attach it to the main domain your page which means every single resource on your page that loads off of your domain sends ____ bytes for every request every single time.
+
+Cookie free domains:
+- using a separate domain just loading all your images & CSS - and the key thing you need to understand is that there is nothing special about the domain that makes it cookie free, except that you never load any single resource through the cookie-free domain that could set a cookie. There's nothing special about the setup of the domain, the server....you have an additional domain like i.mydomain.com for your images (don't go crazy w/too many domains) & that domain is only for resources that do not set cookies. You need to make sure no cookies are ever sent by your configuration. EXCEPT, there's a problem. Most cookies are set globally so there set on the base domain but also sub domains. Now, to get a cookie free domain you actually need to have a physically different base domain. CDN's help but they set unnecessary headers etc..
+
+Optimizing sprites:
+- if you horizontally orient your sprites <------> that's more efficient for the browser than the vertically oriented sprite. Why? Browser parsing algorithm, extra cpu power used for vertically oriented sprites...
+- misconception: some people think that it's ok to put all their images on a sprite & then you only download one image. Be selective about what you decide to put on a sprite sheet. Too many images can take away a lot of the user's pc/smartphone memory.
+
 
 
 
@@ -90,3 +107,170 @@ Note:
 - moving you scripts at the bottom doesn't solve all of your performance problems. You haven't changed the nature of how the browser treats that download. The only thing that you have done is, by the placement of your markup (browsers parse top-bottom), give a priority indication to the browser of which resources are most important.
 
 - People commonly conflate scripts at the bottom with a different concept which is called waiting for the document to be ready because they want to modify the DOM or attach event handlers or do some other things. They think that if I put the script at the bottom of the page, then surely the document is done so when my code runs everything should work. In reality, the way the algorithm the document or body may not be done when it hits a script tag at the bottom. Your script may run before the before the document is completely ready.
+
+
+
+
+
+
+
+
+
+
+
+
+
+Middle End:
+- Google pagespeed insights
+- Resources (CSS, JS, images)
+- Architecture
+- Communication
+
+Front-end
+- resource loading
+- abstractions
+- JS-to-CSS
+- UI Thread & GC
+- jsPerf
+
+
+
+
+
+PART 4: The Middle End: Architecture & Communication
+----------------------------------------------------------
+Concerning architecture, well architected SPA's offer performance benefits. Essentially
+the goal is to download the big web app once & not have to to the server & request parts,
+parts & parts
+
+With SPA's the goal is to only request small of bits of data you need & not the entire app
+structure again
+
+Ex: you can decide whether to offload template rendering on the server if the device isn't
+that powerful or on the client if the pc is a strong & capable one.
+
+
+
+
+Data-Validation:
+- you can do it on the client side & server. For ex: if the user doesn't put in @ sign in email
+you can let them not it's not valid (fast validation for user) or you can also do it on the server
+, which checks if the sent information is valid.
+
+
+JSON, AJAX & Web Sockets
+- With JSON, it’s easy to add bloat to your data & get lazy with how it’s structured.
+  Laziness can lead to latency & a slower web apps.
+- AJAX vs Websockets
+  - AJAX: one of the ways we can communicate between the client & server without doing a page refresh is AJAX,
+   that's a full request response cycle at the HTTP layer. It opens up a new connection on the server
+   & therefore it's taking up extra resources, it's taking up extra HTTP packets over the wire & extra
+   server resources & extra connection resources in your browser & limited mobile devices. So in all
+   places of the stack, AJAX requests is heavier than web sockets.
+
+  - web sockets: create one initial HTTP request-response cycle (there's a full req-res scycle with all the headers
+    is fully safe to go through all of the proxies). As soon as they have established a solid connection between
+    client & server, the client that decides he want's a socket connection sends a request over that open HTTP
+    socket, he sends a request & I'd like to upgrade. We've been talking AJAX for a couple milliseconds now I'd
+    like to talk in the web socket protocol. The server responds ..cool I know the web socket protocol. Now, we
+    have a persistent socket between the client & server, which doesn't require any HTTP over head to communicate.
+    By contrast, there are about ~1684 bytes(overhead bytes) that happen in an HTTP request header, in addition to
+    the data goes over the wire for the HTTP request response handshake. By contrast, a web socket packet has 8 bytes
+    overhead associated with it. You pay the penalty for the first HTTP connection, but the socket is established we have
+    lightweight client-server communication. In addition, sockets give us two-way communication which AJAX doesn't.
+    In the past people came up with long-polling to simulate there two-way communication.
+
+
+
+
+
+
+
+    Front-End Resource Loading:
+    - Frontend Preloading: taking advantage of the browser cache to say I know I'm going to need a resource later, while I've
+      got you on the line, web server, why not just send me that additional resource now. Implications of preloading:
+      enhanced user experience, quick page or resource loading. Problem: initial web pipeline is getting stuffed
+      with extra stuff the user might not need. Takeway: am I preloading during a critical part of my application or
+      during when times are idle?  You can also lazily load other resources later.
+
+    - future browser features IE11+ (no safari). It's a browser hint. The browser decides when to give you the resource
+      <link rel="prefetch" href="hello.jpg">
+      //old school way, place @ bottom after DOM ready. Referencing from CSS could affect the critical rendering path
+      <script>var img = new Image() img.src = 'something.jpg'</script>
+
+    - You need to send out proper cacheing & expiration headers or else you end up reloading stuff more then needed.
+
+
+
+
+
+    - Frontend - Lazy Loading:
+      - Preloading is fetching something ahead of time w/o the user requesting it. Lazy loading fetches it when the user
+        needs it. This technique waits until it's absolutely certain that the user needs that resource. Ex: not loading
+        code for a calendar widget unless a user clicks on it.
+
+      Example:
+      function scriptLoaded(){
+        //code
+      }
+
+      var scr = document.createElement('script');
+      src.src = "foobar.js";
+      document.head.appendChild(src);
+
+      //listen if script finished loading or not
+      // onload means doesn't mean when it's finished loading, it means on finished processing, executed & already done. On done executing!
+      src.onLoad = scriptLoaded;
+      src.onreadystatechange = function(){
+        if(src.readyState === "loaded" || src.readyState === "complete"){
+          scriptLoaded();
+        }
+      }
+
+      The above example can be used to do something like: load data from widget after user has clicked on it
+
+
+      - Frontend - Parallel loading:
+        - I don't just have 1 script that I want to load, I have many scripts that I need to load.
+        - It's about preserving execution order
+
+
+        Ex of how you can load scripts & make sure they preserve order:
+        function allScriptsLoaded(){
+          //code
+        }
+        //modern browsers
+        function loadScript(source, done){
+          var src = document.createElement('script');
+          src.src = source;
+          src.async = false;  // preserve execution order of dynamically created scripts. Downside if script 2 fails all other don't load
+          document.head.appendChild(scr);
+
+          if(done){
+            src.onload = done;
+            src.onreadystatechange = function(){
+              if(src.readyState === "loaded" || src.readyState === "complete"){
+                done();
+              }
+            }
+          }
+        }
+        loadScript('jquery.js')
+        loadScript('foobar.js')
+        loadScript('baz.js', allScriptsLoaded);
+
+
+
+      Why Dynamic script loading?
+      - document ready happens significantly quicker (remember no doc.write included anywhere).
+      - https://infinit.io/_/JSMZ5ve
+
+
+
+
+
+
+
+
+
+    Frontend: Abstractions & Animation
