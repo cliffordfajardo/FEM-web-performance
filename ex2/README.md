@@ -16,3 +16,12 @@
 6. After each change that you make, re-run your page through YSlow, and take note of the differences. Did your changes help your score as you expected? If not, why, do you think? Did any of your changes hurt your score? Why, do you think?
 
 7. Don't ignore a YSlow rule grade of "A". It may have found something you need to fix, but it wasn't bad enough to drop the grade (yet). Look at all rule results. Also, some conditions exist in the markup which YSlow very well may not find (minification, duplicates, etc). Fix those anyway, regardless of YSlow reporting it or not. :)
+
+
+NOTES:
+- compressing images saved 364kb (saved me 59%)
+- uglified jQuery & reduced frmo 259kb to 90kb (saved 64%
+- uglified css & saved 5kb on a file, 2kb on another...more files reduced as well. TODO: concat CSS & make sprites (reduce # of server requests)
+- move script tags to bottom
+
+Atom file size plugin is very helpful for actually seeing the reduced file size after minification.
