@@ -1,14 +1,13 @@
 (function(){
 
 	function setNewPosition($elem,x,y) {
-		$elem.addClass("moving").animate({
-			left: x + "px",
-			top: y + "px"
-		},500,function(){
-			$elem.removeClass("moving");
-		});
+		// $elem.addClass("moving").animate({
+		// 	left: x + "px",
+		// 	top: y + "px"
+		// },500,function(){
+		// 	$elem.removeClass("moving");
+		// });
 
-		/*
 		$elem
 		.addClass("moving")
 		.css({
@@ -18,7 +17,6 @@
 		.bind("transitionend webkitTransitionEnd oTransitionEnd",function(evt){
 			$elem.removeClass("moving").unbind("transitionend webkitTransitionEnd oTransitionEnd");
 		});
-		*/
 	}
 
 	var $body = $(document.body);

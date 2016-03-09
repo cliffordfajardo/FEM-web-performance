@@ -1,29 +1,29 @@
 // requestAnimationFrame polyfill by Erik Möller
 // fixes from Paul Irish and Tino Zijdel
-(function __requestAnimationFrame__() {
-	var lastTime = 0;
-	var vendors = ['ms', 'moz', 'webkit', 'o'];
-	for(var x = 0; x < vendors.length && !window.requestAnimationFrame; ++x) {
-		window.requestAnimationFrame = window[vendors[x]+'RequestAnimationFrame'];
-		window.cancelAnimationFrame = window[vendors[x]+'CancelAnimationFrame'] || window[vendors[x]+'CancelRequestAnimationFrame'];
-	}
-
-	if (!window.requestAnimationFrame) {
-		window.requestAnimationFrame = function rafPolyfill(callback, element) {
-			var currTime = new Date().getTime();
-			var timeToCall = Math.max(0, 16 - (currTime - lastTime));
-			var id = window.setTimeout(function() { callback(currTime + timeToCall); }, timeToCall);
-			lastTime = currTime + timeToCall;
-			return id;
-		};
-	}
-
-	if (!window.cancelAnimationFrame) {
-		window.cancelAnimationFrame = function cafPolyfill(id) {
-			clearTimeout(id);
-		};
-	}
-})();
+// (function __requestAnimationFrame__() {
+// 	var lastTime = 0;
+// 	var vendors = ['ms', 'moz', 'webkit', 'o'];
+// 	for(var x = 0; x < vendors.length && !window.requestAnimationFrame; ++x) {
+// 		window.requestAnimationFrame = window[vendors[x]+'RequestAnimationFrame'];
+// 		window.cancelAnimationFrame = window[vendors[x]+'CancelAnimationFrame'] || window[vendors[x]+'CancelRequestAnimationFrame'];
+// 	}
+//
+// 	if (!window.requestAnimationFrame) {
+// 		window.requestAnimationFrame = function rafPolyfill(callback, element) {
+// 			var currTime = new Date().getTime();
+// 			var timeToCall = Math.max(0, 16 - (currTime - lastTime));
+// 			var id = window.setTimeout(function() { callback(currTime + timeToCall); }, timeToCall);
+// 			lastTime = currTime + timeToCall;
+// 			return id;
+// 		};
+// 	}
+//
+// 	if (!window.cancelAnimationFrame) {
+// 		window.cancelAnimationFrame = function cafPolyfill(id) {
+// 			clearTimeout(id);
+// 		};
+// 	}
+// })();
 
 
 (function(){
@@ -52,7 +52,10 @@
 	}
 
 	function updateFib() {
-		requestAnimationFrame(function(){
+		/*tells the browser that you wish to perform an animation & requests that the browser
+		call a specified function to update an animation before the next repaint. The method
+		takes as an argument a callback to be invoked before the repaint.*/
+		window.requestAnimationFrame(function(){
 			// QUESTION: how could you use the Web Worker here to offload `calcFib()` to another thread?
 			var res = calcFib(fib_n);
 			$current.text("Fib(" + fib_n + "): " + res);
@@ -69,7 +72,12 @@
 
 	var fibWorker = new Worker("ex6.fib.js");
 
-	// keep toggling the transition back and forth
+	fibWorker.onmessage = function(e){
+		var answer = e.data;
+		console.log('an answer')
+	};
+
+	// keep toggling the transition back & forth
 	$mover.bind("transitionend webkitTransitionEnd oTransitionEnd",function(evt){
 		if (!transitionend) { // hack to filter out duplicate transitionend events in Chrome
 			transitionend = true;
